@@ -1,0 +1,42 @@
+﻿@page "/"
+@using BlazorInputFile
+@using server.Data
+@inject IFileUpload fileUpload
+
+<h1>Hello, world!</h1>
+
+<h3>Upload</h3>
+<InputFile OnChange="HandleFileSelected"/>
+
+@if (file != null)
+{
+    <p>Read Success</p>
+    <p>@file.Name</p>
+}
+<section>
+    <button @onclick="@ProcessFileAsync">Get New Xml</button>
+</section>
+<section>
+    <textarea cols=80 rows=80 id="res" value="@result"/>
+</section>
+@code {
+    private IFileListEntry file;
+    private System.IO.MemoryStream filestream;
+    private string result = "";
+    async Task HandleFileSelected(IFileListEntry[] files)
+    {
+        Console.WriteLine("begin file");
+        file = files.FirstOrDefault();
+        if (file != null)
+        {
+            filestream = (System.IO.MemoryStream)await fileUpload.UploadAsync(file);
+        }
+        Console.WriteLine("end file");
+    }
+
+    async Task ProcessFileAsync()
+    {
+        Console.WriteLine("begin fix");
+        result = await Fix.FixCorruptXmlAsync(filestream);
+    }
+}
