@@ -2,21 +2,24 @@
 @using BlazorInputFile
 @using server.Data
 @inject IFileUpload fileUpload
+@inject IJSRuntime js
 
-<h1>Hello, world!</h1>
-
-<h3>Upload</h3>
+<h3>Upload File Here</h3>
 <InputFile OnChange="HandleFileSelected"/>
 
-@if (file != null)
+@if (file is IFileListEntry)
 {
-    <p>Read Success</p>
-    <p>@file.Name</p>
+    <section>
+        <p>Read Success</p>
+        <p>you uploaded @file.Name</p>
+        <p><b>now click "Get New XML" to download the new (hopefully) un-corrupted file</b></p>
+    </section>
 }
 <section>
-    <button @onclick="@ProcessFileAsync">Get New Xml</button>
+    <button @onclick="@ProcessFileAsync">Get New XML</button>
 </section>
 <section>
+    <p>raw XML for your reference</p>
     <textarea cols=80 rows=80 id="res" value="@result"/>
 </section>
 @code {
@@ -25,18 +28,17 @@
     private string result = "";
     async Task HandleFileSelected(IFileListEntry[] files)
     {
-        Console.WriteLine("begin file");
         file = files.FirstOrDefault();
-        if (file != null)
+        if (file is IFileListEntry)
         {
             filestream = (System.IO.MemoryStream)await fileUpload.UploadAsync(file);
         }
-        Console.WriteLine("end file");
     }
 
     async Task ProcessFileAsync()
     {
-        Console.WriteLine("begin fix");
         result = await Fix.FixCorruptXmlAsync(filestream);
+
+        await js.InvokeAsync<object>("FileSaveAs", "", result);
     }
 }

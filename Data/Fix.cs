@@ -2,10 +2,8 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using BlazorInputFile;
 using server.Data.Util;
 
 namespace server.Data
@@ -14,7 +12,7 @@ namespace server.Data
     {
         public async static Task<string> FixCorruptXmlAsync(MemoryStream file)
         {
-            if(file is null)
+            if (file is null)
             {
                 throw new System.ArgumentException("no inmem");
             }
@@ -33,7 +31,6 @@ namespace server.Data
                 xmlDoc.LoadXml(unzipped);
 
                 var dupes = RunAlgorithm(xmlDoc.DocumentElement);
-                Console.WriteLine(dupes.Count);
 
                 using var stringWriter = new StringWriter();
                 using var xmlTextWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings(){
@@ -52,11 +49,9 @@ namespace server.Data
 
         private static IReadOnlyList<XmlNode> RunAlgorithm(XmlNode node)
         {
-            var i = 0;
             var dupes = new List<XmlNode>();
 
             var nodes = node.SelectNodes("//descendant::*[attribute::*[contains(name(), 'id') or contains(name(), 'Id')]]");
-            Console.WriteLine("total: " + nodes.Count);
 
             foreach (XmlNode found in nodes)
             {
@@ -76,11 +71,6 @@ namespace server.Data
                 }
 
                 var val = filteredFoundAttr.FirstOrDefault()?.Value ?? "";
-
-                if (i == 0){
-                    Console.WriteLine(val);
-                    ++i;
-                }
 
                 foreach (XmlNode sibling in found.ParentNode?.ChildNodes ?? new XmlDocument().SelectNodes("/"))
                 {
