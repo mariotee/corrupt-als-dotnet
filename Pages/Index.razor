@@ -4,7 +4,23 @@
 @inject IFileUpload fileUpload
 @inject IJSRuntime js
 
-<h3>Upload File Here</h3>
+<p>In order for this tool to work, an "uncompressed XML" file is needed for your .als project</p>
+<ol>
+    <li>Make a copy of your als project file</li>
+    <li>Zip the duplicate file</li>
+    <li>Unzip the zipped file to get the "uncompressed XML"</li>
+    <ul>
+        <li>you can also double check by opening the uncompressed file in a text editor</li>
+        <li>it should say <code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;</code> on the top of the file</li>
+    </ul>
+    <li>Upload that file here</li>
+</ol>
+<p class="disclaimer">
+    DISCLAIMER: I am not liable for any damage done to your original file.
+    This is why step 1 is absolutely crucial. You should still send your file to Ableton support to see if they can fix it.
+    They will definitely do a much better job than this tool. 
+</p>
+
 <InputFile OnChange="HandleFileSelected"/>
 
 @if (file is IFileListEntry)
@@ -12,7 +28,13 @@
     <section>
         <p>Read Success</p>
         <p>you uploaded @file.Name</p>
-        <p><b>now click "Get New XML" to download the new (hopefully) un-corrupted file</b></p>
+        <div class="download">
+            <p>
+                now click "Get New XML" to download the new (hopefully) un-corrupted file
+                <br/>
+                be sure to save the file with the ".als" extension
+            </p>
+        </div>
     </section>
 }
 <section>
@@ -20,7 +42,7 @@
 </section>
 <section>
     <p>raw XML for your reference</p>
-    <textarea cols=80 rows=80 id="res" value="@result"/>
+    <textarea cols=100 rows=16 id="res" value="@result"/>
 </section>
 @code {
     private IFileListEntry file;

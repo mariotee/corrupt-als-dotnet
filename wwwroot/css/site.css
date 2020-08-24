@@ -180,4 +180,15 @@ app {
         /* Never collapse the sidebar for wide screens */
         display: block;
     }
+
+    p.disclaimer {  
+        color: #333333;
+        max-width: 600px;
+    }
+
+    div.download p {
+        color: purple;
+        margin: 0 0 16px 0;
+        font-size: 1.25rem;
+    }
 }

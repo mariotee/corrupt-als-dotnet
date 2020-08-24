@@ -22,13 +22,14 @@ namespace server.Data
 
             var fileString = await sr.ReadToEndAsync();
             
-            var zipped = await ZipTool.ZipString(fileString);
-            var unzipped = await ZipTool.UnzipBytes(zipped);
+            //TODO: work on taking in .als and compress/decompress from there
+            //var zipped = await ZipTool.ZipString(fileString);
+            //var unzipped = await ZipTool.UnzipBytes(zipped);
 
-            if (!string.IsNullOrWhiteSpace(unzipped)){
+            if (!string.IsNullOrWhiteSpace(fileString)){
                 var xmlDoc = new XmlDocument();
                 
-                xmlDoc.LoadXml(unzipped);
+                xmlDoc.LoadXml(fileString);
 
                 var dupes = RunAlgorithm(xmlDoc.DocumentElement);
 
