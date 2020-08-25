@@ -23,37 +23,32 @@
 
 <InputFile OnChange="HandleFileSelected"/>
 
-@if (file is IFileListEntry)
+<section>
+@if (file is IFileListEntry && filestream is System.IO.MemoryStream)
 {
+    <p><b>Uploaded @file.Name</b></p>
+    <div class="download">
+        <p>Now click "Get New XML" to download the new (hopefully) un-corrupted file</p>
+        <p>Be sure to save the file with the ".als" extension</p>
+        <p>To use the tool on another file, refresh the page to start over</p>
+    </div>
     <section>
-        <p>Read Success</p>
-        <p>you uploaded @file.Name</p>
-        <div class="download">
-            <p>
-                now click "Get New XML" to download the new (hopefully) un-corrupted file
-                <br/>
-                be sure to save the file with the ".als" extension
-            </p>
-        </div>
+        <button @onclick="@ProcessFileAsync">Get New XML</button>
     </section>
 }
-<section>
-    <button @onclick="@ProcessFileAsync">Get New XML</button>
 </section>
-<section>
-    <p>raw XML for your reference</p>
-    <textarea cols=100 rows=16 id="res" value="@result"/>
-</section>
+
 @code {
     private IFileListEntry file;
     private System.IO.MemoryStream filestream;
     private string result = "";
+
     async Task HandleFileSelected(IFileListEntry[] files)
     {
-        file = files.FirstOrDefault();
-        if (file is IFileListEntry)
+        if (files.FirstOrDefault() is IFileListEntry entry)
         {
-            filestream = (System.IO.MemoryStream)await fileUpload.UploadAsync(file);
+            filestream = (System.IO.MemoryStream)await fileUpload.UploadAsync(entry);
+            file = entry;
         }
     }
 
