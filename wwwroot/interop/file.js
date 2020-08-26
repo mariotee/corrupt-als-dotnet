@@ -21,7 +21,6 @@ function ReadUploadedFileAsText(inputFile) {
         };
 
         fr.onload = () => {
-            console.log(fr.result)
             resolve({
                 filename: file.name,
                 data: fr.result,
