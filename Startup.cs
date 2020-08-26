@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FileUploadBlazor.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
@@ -27,10 +26,9 @@ namespace server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<IFileUpload, FileUpload>();
-            
             services.AddRazorPages();
-            services.AddServerSideBlazor();         
+            services.AddServerSideBlazor();
+            services.AddSignalR((o) => o.MaximumReceiveMessageSize = 1024000000);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

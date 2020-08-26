@@ -1,40 +1,32 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
-using server.Data.Util;
 
 namespace server.Data
 {
     public class Fix
     {
-        public async static Task<string> FixCorruptXmlAsync(MemoryStream file)
+        public async static Task<string> FixCorruptXmlAsync(string file)
         {
-            if (file is null)
-            {
-                throw new System.ArgumentException("no inmem");
-            }
-
-            file.Seek(0, SeekOrigin.Begin);
-            using var sr = new StreamReader(file);
-
-            var fileString = await sr.ReadToEndAsync();
-            
             //TODO: work on taking in .als and compress/decompress from there
             //var zipped = await ZipTool.ZipString(fileString);
             //var unzipped = await ZipTool.UnzipBytes(zipped);
 
-            if (!string.IsNullOrWhiteSpace(fileString)){
+            if (!string.IsNullOrWhiteSpace(file))
+            {
                 var xmlDoc = new XmlDocument();
-                
-                xmlDoc.LoadXml(fileString);
 
+                xmlDoc.LoadXml(file);
+
+                //saved here for debugging purposes
                 var dupes = RunAlgorithm(xmlDoc.DocumentElement);
 
                 using var stringWriter = new StringWriter();
-                using var xmlTextWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings(){
+                using var xmlTextWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings()
+                {
                     Async = true,
                 });
 
@@ -66,7 +58,7 @@ namespace server.Data
                     }
                 }
 
-                if (filteredFoundAttr.Count > 1) 
+                if (filteredFoundAttr.Count > 1)
                 {
                     throw new ArgumentException("too many IDs");
                 }
@@ -90,7 +82,7 @@ namespace server.Data
                         }
                     }
 
-                    if (idAttributes.Count > 1) 
+                    if (idAttributes.Count > 1)
                     {
                         throw new ArgumentException("too many IDs on sibling");
                     }

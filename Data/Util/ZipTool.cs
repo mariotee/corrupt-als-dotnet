@@ -1,10 +1,8 @@
-using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BlazorInputFile;
 
 namespace server.Data.Util
 {
@@ -17,7 +15,7 @@ namespace server.Data.Util
                 using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
                 {
                     var demoFile = zipArchive.CreateEntry("zipped.txt");
-            
+
                     using (var entryStream = demoFile.Open())
                     {
                         using (var streamWriter = new StreamWriter(entryStream))
@@ -26,7 +24,7 @@ namespace server.Data.Util
                         }
                     }
                 }
-            
+
                 return memoryStream.ToArray();
             }
         }
@@ -38,7 +36,7 @@ namespace server.Data.Util
                 using (var archive = new ZipArchive(zippedStream))
                 {
                     var entry = archive.Entries.FirstOrDefault();
-            
+
                     if (entry != null)
                     {
                         using (var unzippedEntryStream = entry.Open())
@@ -47,12 +45,12 @@ namespace server.Data.Util
                             {
                                 await unzippedEntryStream.CopyToAsync(ms);
                                 var unzippedArray = ms.ToArray();
-                    
+
                                 return Encoding.Default.GetString(unzippedArray);
                             }
                         }
                     }
-            
+
                     return null;
                 }
             }

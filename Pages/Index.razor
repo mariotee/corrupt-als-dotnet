@@ -1,7 +1,7 @@
 ﻿@page "/"
-@using BlazorInputFile
 @using server.Data
-@inject IFileUpload fileUpload
+@using System.IO
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
 @inject IJSRuntime js
 
 <p>In order for this tool to work, an "uncompressed XML" file is needed for your .als project</p>
@@ -13,49 +13,56 @@
         <li>you can also double check by opening the uncompressed file in a text editor</li>
         <li>it should say <code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;</code> on the top of the file</li>
     </ul>
-    <li>Upload that file here</li>
+    <li>Upload that file here (current limit is 1GB; email me if the file is bigger than this)</li>
 </ol>
 <p class="disclaimer">
     DISCLAIMER: I am not liable for any damage done to your original file.
     This is why step 1 is absolutely crucial. You should still send your file to Ableton support to see if they can fix it.
-    They will definitely do a much better job than this tool. 
+    They will definitely do a much better job than this tool.
 </p>
 
-<InputFile OnChange="HandleFileSelected"/>
+<input type="file" id="fileUpload" @onchange="HandleFileSelectedAsync"/>
 
 <section>
-@if (file is IFileListEntry && filestream is System.IO.MemoryStream)
-{
-    <p><b>Uploaded @file.Name</b></p>
-    <div class="download">
-        <p>Now click "Get New XML" to download the new (hopefully) un-corrupted file</p>
-        <p>Be sure to save the file with the ".als" extension</p>
-        <p>To use the tool on another file, refresh the page to start over</p>
-    </div>
-    <section>
-        <button @onclick="@ProcessFileAsync">Get New XML</button>
-    </section>
-}
+    @if (!string.IsNullOrWhiteSpace(_fileContent))
+    {
+        <p><b>Uploaded @_filename</b></p>
+        <div class="download">
+            <p>Now click "Get New XML" to download the new (hopefully) un-corrupted file</p>
+            <p>Be sure to save the file with the ".als" extension</p>
+            <p>To use the tool on another file, refresh the page to start over</p>
+        </div>
+        <section>
+            <button @onclick="@ProcessFileAsync">Get New XML</button>
+            @if (_processing)
+            {
+                <p>Processing file...</p>
+            }
+        </section>
+    }
 </section>
 
-@code {
-    private IFileListEntry file;
-    private System.IO.MemoryStream filestream;
-    private string result = "";
+@code {   
+    private string _filename;
+    private string _fileContent;
+    private string _result = "";
+    private bool _processing = false;
 
-    async Task HandleFileSelected(IFileListEntry[] files)
+    async Task HandleFileSelectedAsync()
     {
-        if (files.FirstOrDefault() is IFileListEntry entry)
-        {
-            filestream = (System.IO.MemoryStream)await fileUpload.UploadAsync(entry);
-            file = entry;
-        }
+        var jsFile = await js.ReadFileAsTextAsync();
+
+        _filename = jsFile.FileName;
+        _fileContent = jsFile.Data;
+
     }
 
     async Task ProcessFileAsync()
     {
-        result = await Fix.FixCorruptXmlAsync(filestream);
+        _processing = true;
+        _result = await Fix.FixCorruptXmlAsync(_fileContent);
+        _processing = false;
 
-        await js.InvokeAsync<object>("FileSaveAs", "", result);
+        await js.SaveFileAsync(_result);
     }
 }
