@@ -71,7 +71,7 @@
     {
         _processing = true;
         //TODO: look into algorithm asynchronicity to remove this delay call
-        await Task.Delay(1);
+        await Task.Delay(10);
         _result = await Fix.FixCorruptXmlAsync(_fileContent);
         _processing = false;
 
