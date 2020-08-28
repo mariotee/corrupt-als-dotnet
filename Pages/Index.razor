@@ -24,6 +24,11 @@
 <input type="file" id="fileUpload" @onchange="HandleFileSelectedAsync"/>
 
 <section>
+    @if (_uploading)
+    {
+        <p>Uploading...</p>
+        <div class="loader"></div>
+    }
     @if (!string.IsNullOrWhiteSpace(_fileContent))
     {
         <p><b>Uploaded @_filename</b></p>
@@ -36,21 +41,26 @@
             <button @onclick="@ProcessFileAsync">Get New XML</button>
             @if (_processing)
             {
-                <p>Processing file...</p>
+                <p>Processing File...</p>
+                <div class="loader"></div>
             }
         </section>
     }
 </section>
 
-@code {   
+@code 
+{   
     private string _filename;
     private string _fileContent;
     private string _result = "";
     private bool _processing = false;
+    private bool _uploading = false;
 
     async Task HandleFileSelectedAsync()
     {
+        _uploading = true;
         var jsFile = await js.ReadFileAsTextAsync();
+        _uploading = false;
 
         _filename = jsFile.FileName;
         _fileContent = jsFile.Data;
@@ -60,6 +70,8 @@
     async Task ProcessFileAsync()
     {
         _processing = true;
+        //TODO: look into algorithm asynchronicity to remove this delay call
+        await Task.Delay(1);
         _result = await Fix.FixCorruptXmlAsync(_fileContent);
         _processing = false;
 
