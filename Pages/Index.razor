@@ -1,14 +1,12 @@
 ﻿@page "/"
 @using server.Data
-@using System.IO
-@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
 @inject IJSRuntime js
 
 <p>In order for this tool to work, an "uncompressed XML" file is needed for your .als project</p>
 <ol>
     <li>Make a copy of your als project file</li>
-    <li>Zip the duplicate file</li>
-    <li>Unzip the zipped file to get the "uncompressed XML"</li>
+    <li>Change the duplicate file extension from ".als" to ".zip"</li>
+    <li>Unzip this file to get the "uncompressed XML"</li>
     <ul>
         <li>you can also double check by opening the uncompressed file in a text editor</li>
         <li>it should say <code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;</code> on the top of the file</li>
@@ -21,7 +19,7 @@
     They will definitely do a much better job than this tool.
 </p>
 
-<input type="file" id="fileUpload" @onchange="HandleFileSelectedAsync"/>
+<input type="file" id="fileUpload" @onchange="HandleFileSelectedAsync" />
 
 <section>
     @if (_uploading)
@@ -48,8 +46,8 @@
     }
 </section>
 
-@code 
-{   
+@code
+{
     private string _filename;
     private string _fileContent;
     private string _result = "";
