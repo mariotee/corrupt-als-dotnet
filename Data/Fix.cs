@@ -12,8 +12,6 @@ namespace server.Data
         public async static Task<string> FixCorruptXmlAsync(string file)
         {
             //TODO: work on taking in .als and compress/decompress from there
-            //var zipped = await ZipTool.ZipString(fileString);
-            //var unzipped = await ZipTool.UnzipBytes(zipped);
 
             if (!string.IsNullOrWhiteSpace(file))
             {
