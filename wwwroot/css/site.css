@@ -189,8 +189,12 @@ p.disclaimer {
 
 div.download p {
     color: purple;
-    margin: 0 0 16px 0;
+    margin: 0 0 2rem 0;
     font-size: 1.25rem;
+}
+
+section.endorse-me {
+    margin: 3rem 0;
 }
 
 .loader,

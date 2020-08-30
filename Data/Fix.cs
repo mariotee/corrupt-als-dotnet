@@ -1,7 +1,9 @@
+using server.Data.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -9,15 +11,16 @@ namespace server.Data
 {
     public class Fix
     {
-        public async static Task<string> FixCorruptXmlAsync(string file)
+        public async static Task<string> FixCorruptXmlAsync(byte[] file)
         {
             //TODO: work on taking in .als and compress/decompress from there
+            var zipbytes = await ZipTool.DecompressAsync(file);
 
-            if (!string.IsNullOrWhiteSpace(file))
+            if (zipbytes is byte[] bytes && bytes.Length > 0)
             {
                 var xmlDoc = new XmlDocument();
 
-                xmlDoc.LoadXml(file);
+                xmlDoc.LoadXml(Encoding.UTF8.GetString(zipbytes));
 
                 //saved here for debugging purposes
                 var dupes = RunAlgorithm(xmlDoc.DocumentElement);

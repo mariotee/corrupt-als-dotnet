@@ -7,7 +7,4 @@
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
 
-  <ItemGroup>
-  </ItemGroup>
-
 </Project>

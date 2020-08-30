@@ -7,7 +7,7 @@ function FileSaveAs(filename, fileContent) {
     document.body.removeChild(link);
 }
 
-function ReadUploadedFileAsText(inputFile) {
+function ReadFileBaseSixtyFour(inputFile) {
     var input = document.getElementById(inputFile);
     var file = input.files[0];
 
@@ -23,9 +23,10 @@ function ReadUploadedFileAsText(inputFile) {
         fr.onload = () => {
             resolve({
                 filename: file.name,
-                data: fr.result,
+                data: fr.result
             });
         };
-        fr.readAsText(file);
+
+        fr.readAsDataURL(file);
     });
 };

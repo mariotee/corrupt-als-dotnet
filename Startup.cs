@@ -28,7 +28,7 @@ namespace server
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddSignalR((o) => o.MaximumReceiveMessageSize = 1024000000);
+            services.AddSignalR((o) => o.MaximumReceiveMessageSize = 512*1000*1000);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
