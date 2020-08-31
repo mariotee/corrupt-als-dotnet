@@ -11,6 +11,13 @@ function ReadFileBaseSixtyFour(inputFile) {
     var input = document.getElementById(inputFile);
     var file = input.files[0];
 
+    if (file === undefined) {
+        return {
+            filename: "",
+            data: "",
+        }
+    }
+
     var fr = new FileReader();
 
     return new Promise((resolve, reject) => {
@@ -23,7 +30,7 @@ function ReadFileBaseSixtyFour(inputFile) {
         fr.onload = () => {
             resolve({
                 filename: file.name,
-                data: fr.result
+                data: fr.result,
             });
         };
 

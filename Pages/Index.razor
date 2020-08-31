@@ -1,9 +1,10 @@
 ﻿@page "/"
 @using server.Data
+@using server.Data.Util
 @using System.Text.RegularExpressions
 @inject IJSRuntime js
 
-<p>In order for this tool to work, an "uncompressed XML" file is needed for your .als project</p>
+<p>In order for this tool to work, your project must have been corrupted due to "non-unique IDs"</p>
 <ol>
     <li>Make a copy of your als project file</li>
     <li>Upload the duplicate file here</li>
@@ -23,13 +24,12 @@
         <p>Uploading...</p>
         <div class="loader"></div>
     }
-    @if (_fileContent is byte[])
+    @if (_fileContent is byte[] content && content.Length > 0)
     {
         <p><b>Uploaded @_filename</b></p>
         <div class="download">
             <p>Now click "Get New XML" to download the new (hopefully) un-corrupted file</p>
             <p>Be sure to save the file with the ".als" extension</p>
-            <p>To use the tool on another file, refresh the page to start over</p>
         </div>
         <section>
             <button @onclick="@ProcessFileAsync">Get New XML</button>
@@ -37,6 +37,10 @@
             {
                 <p>Processing File...</p>
                 <div class="loader"></div>
+            }
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <p class="error">@_error</p>
             }
         </section>
     }
@@ -51,12 +55,14 @@
 {
     private string _filename;
     private byte[] _fileContent;
-    private string _result = "";
     private bool _processing = false;
     private bool _uploading = false;
+    private string _error = "";
+    private CorruptionType _corruptionType = CorruptionType.DUPLICATE_IDS;
 
     async Task HandleFileSelectedAsync()
     {
+        _error = "";
         _uploading = true;
         var jsFile = await js.ReadFileAsync();
         _uploading = false;
@@ -72,12 +78,23 @@
 
     async Task ProcessFileAsync()
     {
+        _error = "";
         _processing = true;
-        //TODO: look into algorithm asynchronicity to remove this delay call
-        await Task.Delay(10);
-        _result = await Fix.FixCorruptXmlAsync(_fileContent);
-        _processing = false;
 
-        await js.SaveFileAsync(_result);
+        try
+        {
+            //TODO: look into algorithm asynchronicity to remove this delay call
+            await Task.Delay(10);
+            //TODO: future work - radio input for type of corruption
+            var res = await Fix.FixCorruptXmlAsync(_fileContent, _corruptionType);
+            await js.SaveFileAsync(res);
+
+            _processing = false;
+        }
+        catch (UnsupportedCompressionAlgorithmException)
+        {
+            _error = "Invalid .als Project File (ERROR: not gzipped)";
+            _processing = false;
+        }
     }
 }

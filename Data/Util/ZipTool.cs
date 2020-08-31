@@ -12,7 +12,17 @@ namespace server.Data.Util
             using var output = new MemoryStream();
             using var gz = new GZipStream(inmem, CompressionMode.Decompress);
 
-            await gz.CopyToAsync(output);
+            try
+            {
+                await gz.CopyToAsync(output);
+            }
+            catch (InvalidDataException invalidDataEx)
+            {
+                if (invalidDataEx.Message == "The archive entry was compressed using an unsupported compression method.")
+                {
+                    throw new UnsupportedCompressionAlgorithmException();
+                }
+            }
 
             return output.ToArray();
         }

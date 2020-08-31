@@ -9,12 +9,20 @@ using System.Xml;
 
 namespace server.Data
 {
-    public class Fix
+    public static class Fix
     {
-        public async static Task<string> FixCorruptXmlAsync(byte[] file)
+        public async static Task<string> FixCorruptXmlAsync(byte[] file, CorruptionType corruptionType)
         {
-            //TODO: work on taking in .als and compress/decompress from there
-            var zipbytes = await ZipTool.DecompressAsync(file);
+            byte[] zipbytes;
+
+            try
+            {
+                zipbytes = await ZipTool.DecompressAsync(file);
+            }
+            catch (UnsupportedCompressionAlgorithmException)
+            {
+                throw;
+            }
 
             if (zipbytes is byte[] bytes && bytes.Length > 0)
             {
@@ -22,26 +30,34 @@ namespace server.Data
 
                 xmlDoc.LoadXml(Encoding.UTF8.GetString(zipbytes));
 
-                //saved here for debugging purposes
-                var dupes = RunAlgorithm(xmlDoc.DocumentElement);
-
-                using var stringWriter = new StringWriter();
-                using var xmlTextWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings()
+                if (corruptionType == CorruptionType.DUPLICATE_IDS)
                 {
-                    Async = true,
-                });
+                    //saved here for debugging purposes
+                    var dupes = RunDuplicateIdsAlgorithm(xmlDoc.DocumentElement);
+                }
 
-                xmlDoc.Save(xmlTextWriter);
-
-                await xmlTextWriter.FlushAsync();
-
-                return stringWriter.GetStringBuilder().ToString();
+                return await SaveXmlAsync(xmlDoc);
             }
 
             throw new InvalidDataException("file");
         }
 
-        private static IReadOnlyList<XmlNode> RunAlgorithm(XmlNode node)
+        private static async Task<string> SaveXmlAsync(XmlDocument xml)
+        {
+            using var stringWriter = new StringWriter();
+            using var xmlTextWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings()
+            {
+                Async = true,
+            });
+
+            xml.Save(xmlTextWriter);
+
+            await xmlTextWriter.FlushAsync();
+
+            return stringWriter.GetStringBuilder().ToString();
+        }
+
+        private static IReadOnlyList<XmlNode> RunDuplicateIdsAlgorithm(XmlNode node)
         {
             var dupes = new List<XmlNode>();
 
