@@ -14,7 +14,7 @@ namespace server.Data
 
         public static async Task SaveFileAsync(this IJSRuntime js, string text)
         {
-            await js.InvokeAsync<object>("FileSaveAs", "", text);
+            await js.InvokeAsync<object>("FileSaveAs", "newfile.als", text);
         }
     }
 
