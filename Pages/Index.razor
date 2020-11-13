@@ -1,7 +1,6 @@
 ﻿@page "/"
 @using server.Data
 @using server.Data.Util
-@using System.Text.RegularExpressions
 @inject IJSRuntime js
 
 <p>In order for this tool to work, your project must have been corrupted due to "non-unique IDs"</p>
@@ -16,7 +15,7 @@
     They will most likely do a much better job than this tool.
 </p>
 
-<input type="file" id="fileUpload" @onchange="HandleFileSelectedAsync" />
+<InputFile OnChange="@HandleFileSelectedAsync" />
 
 <section>
     @if (_uploading)
@@ -60,20 +59,17 @@
     private string _error = "";
     private CorruptionType _corruptionType = CorruptionType.DUPLICATE_IDS;
 
-    async Task HandleFileSelectedAsync()
+    async Task HandleFileSelectedAsync(InputFileChangeEventArgs e)
     {
         _error = "";
         _uploading = true;
-        var jsFile = await js.ReadFileAsync();
         _uploading = false;
 
-        _filename = jsFile.FileName;
+        _filename = e.File.Name;
 
-        _fileContent = Convert
-            .FromBase64String(Regex
-                .Match(jsFile.Data, @"data:(?<mime>.+?)/(?<type>.+?),(?<base64>.+)")
-                .Groups["base64"]
-                .Value);
+        _fileContent = new byte[e.File.Size + 1L];
+
+        await e.File.OpenReadStream(maxAllowedSize: FileConstants.MaxFileSize).ReadAsync(_fileContent);
     }
 
     async Task ProcessFileAsync()

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using server.Data;
+using server.Data.Util;
 
 namespace server
 {
@@ -28,7 +29,7 @@ namespace server
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddSignalR((o) => o.MaximumReceiveMessageSize = 150*1000*1000);
+            services.AddSignalR((o) => o.MaximumReceiveMessageSize = FileConstants.MaxFileSize);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -5,26 +5,10 @@ namespace server.Data
 {
     public static class JSInteropExtensions
     {
-        public static async Task<FileDataModel> ReadFileAsync(this IJSRuntime js)
-        {
-            string fileInputId = "fileUpload";
-
-            return await js.InvokeAsync<FileDataModel>("ReadFileBaseSixtyFour", fileInputId);
-        }
 
         public static async Task SaveFileAsync(this IJSRuntime js, string text)
         {
             await js.InvokeAsync<object>("FileSaveAs", "newfile.als", text);
         }
     }
-
-    /*BEGIN MODELS*/
-
-    public class FileDataModel
-    {
-        public string FileName { get; set; }
-        public string Data { get; set; }
-    }
-
-    /*END MODELS*/
 }

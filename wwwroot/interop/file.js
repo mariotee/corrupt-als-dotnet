@@ -6,34 +6,3 @@ function FileSaveAs(filename, fileContent) {
     link.click();
     document.body.removeChild(link);
 }
-
-function ReadFileBaseSixtyFour(inputFile) {
-    var input = document.getElementById(inputFile);
-    var file = input.files[0];
-
-    if (file === undefined) {
-        return {
-            filename: "",
-            data: "",
-        }
-    }
-
-    var fr = new FileReader();
-
-    return new Promise((resolve, reject) => {
-        fr.onerror = () => {
-            fr.abort();
-            console.log("rejected promise method")
-            reject(new DOMException("Problem parsing input file."));
-        };
-
-        fr.onload = () => {
-            resolve({
-                filename: file.name,
-                data: fr.result,
-            });
-        };
-
-        fr.readAsDataURL(file);
-    });
-};
