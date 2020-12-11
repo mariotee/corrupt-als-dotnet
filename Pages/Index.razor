@@ -29,6 +29,12 @@
         <div class="download">
             <p>Now click "Get New XML" to download the new (hopefully) un-corrupted file</p>
             <p>Be sure to save the file with the ".als" extension</p>
+            <p class="retry">
+                If the process fails and you get a blue "Reload" link at the bottom of the page, 
+                try clicking it and starting the process again. 
+                Since I am using a free cloud, it might need to try more than once.
+                However, if it fails more than two times, feel free to contact me so I can run it on my local machine
+            </p>
         </div>
         <section>
             <button @onclick="@ProcessFileAsync">Get New XML</button>

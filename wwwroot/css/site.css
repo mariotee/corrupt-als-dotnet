@@ -182,6 +182,11 @@ app {
     }
 }
 
+p.retry
+{
+    max-width: 500pt;
+}
+
 p.disclaimer {  
     color: #333333;
     max-width: 600px;
@@ -199,6 +204,7 @@ div.download p {
 
 section.endorse-me {
     margin: 3rem 0;
+    color: #333333;
 }
 
 .loader,
