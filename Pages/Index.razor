@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using server.Data
 @using server.Data.Util
+@inject Microsoft.Extensions.Hosting.IHostEnvironment env;
 @inject IJSRuntime js
 
 <p>In order for this tool to work, your project must have been corrupted due to "non-unique IDs"</p>
@@ -61,6 +62,8 @@
     private string _error = "";
     private CorruptionType _corruptionType = CorruptionType.DUPLICATE_IDS;
 
+    private DateTime _uploadInit;
+
     async Task HandleFileSelectedAsync(InputFileChangeEventArgs e)
     {
         _error = "";
@@ -72,12 +75,21 @@
         _fileContent = new byte[e.File.Size + 1L];
 
         await e.File.OpenReadStream(maxAllowedSize: FileConstants.MaxFileSize).ReadAsync(_fileContent);
+
+        _uploadInit = DateTime.Now;
     }
 
     async Task ProcessFileAsync()
     {
         _error = "";
         _processing = true;
+        
+        //since we're using free Azure app service, we need to delay this for file uploads over 1 MB
+        //just in case the user clicks the process button too fast
+        var processDelay = 5000 - (DateTime.Now.Millisecond - _uploadInit.Millisecond);
+        processDelay = processDelay < 0 ? 0 : processDelay;
+        await Task.Delay(processDelay);
+        
 
         try
         {
