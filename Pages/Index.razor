@@ -21,9 +21,8 @@
     @if (_uploading)
     {
         <p>Uploading...</p>
-        <div class="loader"></div>
     }
-    @if (_fileContent is byte[] content && content.Length > 0)
+    @if (_fileContent is byte[] content && !_uploading)
     {
         <p><b>Uploaded @_filename</b></p>
         <div class="download">
@@ -74,13 +73,14 @@
     {
         _error = "";
         _uploading = true;
-        _uploading = false;
 
         _filename = e.File.Name;
 
         _fileContent = new byte[e.File.Size + 1L];
 
         await e.File.OpenReadStream(maxAllowedSize: FileConstants.MaxFileSize).ReadAsync(_fileContent);
+
+        _uploading = false;
 
         _uploadInit = DateTime.Now;
     }
@@ -89,13 +89,6 @@
     {
         _error = "";
         _processing = true;
-        
-        //since we're using free Azure app service, we need to delay this for file uploads over 1 MB
-        //just in case the user clicks the process button too fast
-        var processDelay = 5000 - (DateTime.Now.Millisecond - _uploadInit.Millisecond);
-        processDelay = processDelay < 0 ? 0 : processDelay;
-        await Task.Delay(processDelay);
-        
 
         try
         {
