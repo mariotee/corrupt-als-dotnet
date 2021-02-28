@@ -7,6 +7,9 @@
 Upload/**
 !Upload/.gitkeep
 
+# Deploy
+profile.arm.json
+
 # User-specific files
 *.rsuser
 *.suo
