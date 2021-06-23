@@ -1,7 +1,10 @@
 ﻿@page "/"
 @using server.Data
 @using server.Data.Util
-@inject Microsoft.Extensions.Hosting.IHostEnvironment env;
+@using Microsoft.Extensions.Configuration
+
+@inject Microsoft.Extensions.Hosting.IHostEnvironment env
+@inject Microsoft.Extensions.Configuration.IConfiguration config
 @inject IJSRuntime js
 
 <h3>Upload File</h3>
@@ -31,8 +34,8 @@
             <p>Now click "Get New XML" to download the new (hopefully) un-corrupted file</p>
             <p>Be sure to save the file with the ".als" extension</p>
             <p class="retry">
-                If the process fails and you get a blue "Reload" link at the bottom of the page, 
-                try clicking it and starting the process again. 
+                If the process fails and you get a blue "Reload" link at the bottom of the page,
+                try clicking it and starting the process again.
                 Since I am using a free cloud, it might need to try more than once.
                 However, if it fails more than two times, feel free to contact me so I can run it on my local machine
             </p>
@@ -50,14 +53,14 @@
             }
         </section>
     }
-<section class="endorse-me">
-    <p>
-        If you liked this project, please consider "starring" the project on GitHub (link in sidebar)
-    </p>
-    <p>
-        Also, current limit is 50MB; email me if the file is bigger than this (email found in same GitHub link)
-    </p>
-</section>
+    <section class="endorse-me">
+        <p>
+            If you liked this project, please consider "starring" the project on GitHub (link in sidebar)
+        </p>
+        <p>
+            Also, current limit is 50MB; email me if the file is bigger than this (email found in same GitHub link)
+        </p>
+    </section>
 </section>
 
 @code
@@ -67,7 +70,7 @@
     private bool _processing = false;
     private bool _uploading = false;
     private string _error = "";
-    private CorruptionType _corruptionType = CorruptionType.DUPLICATE_IDS;
+    private CorruptionType _corruptionType = CorruptionType.DUPLICATE_NOTE_IDS;
 
     private DateTime _uploadInit;
 
@@ -97,7 +100,7 @@
             //TODO: look into algorithm asynchronicity to remove this delay call
             await Task.Delay(10);
             //TODO: future work - radio input for type of corruption
-            var res = await Fix.FixCorruptXmlAsync(_fileContent, _corruptionType);
+            var res = await Fix.FixCorruptXmlAsync(_fileContent, _corruptionType, config.GetValue<bool>("Features:KeyTracks"));
             await js.SaveFileAsync(res);
 
             _processing = false;

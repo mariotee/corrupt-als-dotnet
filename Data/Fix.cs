@@ -1,39 +1,37 @@
 using server.Data.Util;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace server.Data
 {
     public static class Fix
     {
-        public async static Task<string> FixCorruptXmlAsync(byte[] file, CorruptionType corruptionType)
+        public async static Task<string> FixCorruptXmlAsync(byte[] file, CorruptionType corruptionType, bool ff_KeyTracks)
         {
-            byte[] zipbytes;
+            byte[] unzip;
 
             try
             {
-                zipbytes = await ZipTool.DecompressAsync(file);
+                unzip = await ZipTool.DecompressAsync(file);
             }
             catch (UnsupportedCompressionAlgorithmException)
             {
                 throw;
             }
 
-            if (zipbytes is byte[] bytes && bytes.Length > 0)
+            if (unzip is byte[] bytes && bytes.Length > 0)
             {
-                var xmlDoc = new XmlDocument();
+                var xmlDoc = XDocument.Parse(Encoding.UTF8.GetString(unzip));
 
-                xmlDoc.LoadXml(Encoding.UTF8.GetString(zipbytes));
-
-                if (corruptionType == CorruptionType.DUPLICATE_IDS)
+                if (corruptionType == CorruptionType.DUPLICATE_NOTE_IDS)
                 {
                     //saved here for debugging purposes
-                    var dupes = RunDuplicateIdsAlgorithm(xmlDoc.DocumentElement);
+                    var dupes = RunDuplicateNoteIdsAlgorithm(xmlDoc, ff_KeyTracks);
                 }
 
                 return await SaveXmlAsync(xmlDoc);
@@ -42,7 +40,7 @@ namespace server.Data
             throw new InvalidDataException("file");
         }
 
-        private static async Task<string> SaveXmlAsync(XmlDocument xml)
+        private static async Task<string> SaveXmlAsync(XDocument xml)
         {
             using var stringWriter = new StringWriter();
             using var xmlTextWriter = XmlWriter.Create(stringWriter, new XmlWriterSettings()
@@ -57,58 +55,68 @@ namespace server.Data
             return stringWriter.GetStringBuilder().ToString();
         }
 
-        private static IReadOnlyList<XmlNode> RunDuplicateIdsAlgorithm(XmlNode node)
+        private static IReadOnlyList<XElement> RunDuplicateNoteIdsAlgorithm(XDocument root, bool ff_KeyTracks)
         {
-            var dupes = new List<XmlNode>();
+            var dupes = new List<XElement>();
 
-            var nodes = node.SelectNodes("//descendant::*[attribute::*[contains(name(), 'id') or contains(name(), 'Id')]]");
+            var nodes = root.Descendants()
+                .Where((d) => d.Attributes().Any((a) => a.Name == "NoteId"));
 
-            foreach (XmlNode found in nodes)
+            foreach (var found in nodes)
             {
-                var foundAttributes = found.Attributes;
-                var filteredFoundAttr = new List<XmlAttribute>();
-                foreach (XmlAttribute attr in foundAttributes)
+                var attrs = found.Attributes();
+
+                if (found.Parent.Elements().Count() > 1)
                 {
-                    if (attr.Name.Contains("id", StringComparison.CurrentCultureIgnoreCase))
+                    foreach (var sibling in found.Parent.Elements())
                     {
-                        filteredFoundAttr.Add(attr);
-                    }
-                }
+                        if (sibling == found) continue;
 
-                if (filteredFoundAttr.Count > 1)
-                {
-                    throw new ArgumentException("too many IDs");
-                }
+                        if (sibling.Name != found.Name) continue;
 
-                var val = filteredFoundAttr.FirstOrDefault()?.Value ?? "";
-
-                foreach (XmlNode sibling in found.ParentNode?.ChildNodes ?? new XmlDocument().SelectNodes("/"))
-                {
-                    if (sibling == found) continue;
-
-                    if (sibling.Name != found.Name) continue;
-
-                    var siblingAttributes = sibling.Attributes;
-                    var idAttributes = new List<XmlAttribute>();
-
-                    foreach (XmlAttribute attr in siblingAttributes)
-                    {
-                        if (attr.Name.Contains("id", StringComparison.CurrentCultureIgnoreCase))
+                        if (sibling.Attributes()
+                            .Where((a) => a.Name == "NoteId")
+                            .Any((a) => attrs
+                                .Any((b) => b.Name == a.Name && b.Value == a.Value)))
                         {
-                            idAttributes.Add(attr);
+                            dupes.Add(sibling);
+                            sibling.Remove();
                         }
                     }
+                }
+            }
 
-                    if (idAttributes.Count > 1)
-                    {
-                        throw new ArgumentException("too many IDs on sibling");
-                    }
+            if (ff_KeyTracks)
+            {
+                dupes.AddRange(TryKeyTracks(root));
+            }
 
-                    if (idAttributes.FirstOrDefault()?.Value == val)
-                    {
-                        dupes.Add(sibling);
-                        found.ParentNode.RemoveChild(sibling);
-                    }
+            return dupes;
+        }
+
+        private static IReadOnlyList<XElement> TryKeyTracks(XDocument root)
+        {
+            var dupes = new List<XElement>();
+
+            var nodes = root.Descendants().Where((d) => d.Name == "Notes")
+                    .Elements().Where((d) => d.Name == "KeyTracks");
+
+            var fixer = 99990;
+
+            foreach (var kt in nodes)
+            {
+                var midinoteevents = kt.Elements().Where((k) => k.Name == "KeyTrack")
+                    .Elements().Where((t) => t.Name == "Notes")
+                    .Elements().Where((n) => n.Name == "MidiNoteEvent");
+
+                foreach (var mn in midinoteevents)
+                {
+                    var attr = mn.Attributes().First((a) => a.Name == "NoteId");
+                    dupes.Add(mn);
+
+                    int oldId = int.Parse(attr.Value);
+
+                    attr.Value = fixer++.ToString();
                 }
             }
 

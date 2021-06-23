@@ -2,6 +2,6 @@
 {
     public enum CorruptionType
     {
-        DUPLICATE_IDS,
+        DUPLICATE_NOTE_IDS,
     }
 }
