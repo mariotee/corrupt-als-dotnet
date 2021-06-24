@@ -96,31 +96,33 @@ namespace server.Data
 
         private static IReadOnlyList<XElement> TryKeyTracks(XDocument root)
         {
-            var dupes = new List<XElement>();
+            var keyDupes = new List<XElement>();
 
-            var nodes = root.Descendants().Where((d) => d.Name == "Notes")
-                    .Elements().Where((d) => d.Name == "KeyTracks");
+            var keyTracksNodes = root.Descendants().Where((d) => d.Name == "Notes")
+                    .Elements().Where((d) => d.Name == "KeyTracks")
+                    .ToList();
 
             var fixer = 99990;
 
-            foreach (var kt in nodes)
+            foreach (var keyTrackCollection in keyTracksNodes)
             {
-                var midinoteevents = kt.Elements().Where((k) => k.Name == "KeyTrack")
+                var midiNoteEvents = keyTrackCollection
+                    .Elements().Where((c) => c.Name == "KeyTrack")
                     .Elements().Where((t) => t.Name == "Notes")
                     .Elements().Where((n) => n.Name == "MidiNoteEvent");
 
-                foreach (var mn in midinoteevents)
+                foreach (var noteEvent in midiNoteEvents)
                 {
-                    var attr = mn.Attributes().First((a) => a.Name == "NoteId");
-                    dupes.Add(mn);
+                    var noteId = noteEvent.Attributes().First((a) => a.Name == "NoteId");
+                    keyDupes.Add(noteEvent);
 
-                    int oldId = int.Parse(attr.Value);
+                    int oldId = int.Parse(noteId.Value);
 
-                    attr.Value = fixer++.ToString();
+                    noteId.Value = fixer++.ToString();
                 }
             }
 
-            return dupes;
+            return keyDupes;
         }
     }
 }
